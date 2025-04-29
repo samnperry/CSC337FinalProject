@@ -97,8 +97,13 @@ function fetchBooks() {
             
             for (var i = 0; i < books.length; i++) {
                 var book = books[i]
-                var bookItem = document.createElement('p')
-                bookItem.innerHTML = `${book.title} - <em>$${book.price}</em>`
+
+                var bookItem = document.createElement('div')
+                bookItem.innerHTML = `
+                    <p><strong>${book.title}</strong> - <em>$${book.price}</em></p>
+                    <button onclick="toggleEditForm('${book._id}', '${book.title}', ${book.price})">Edit</button>
+                    <div id="edit-form-${book._id}" style="display: none; margin-top: 10px;"></div>
+                `
                 bookListElement.appendChild(bookItem)
             }
         })
@@ -107,5 +112,49 @@ function fetchBooks() {
             document.querySelector('.book-list').innerHTML = '<p>Error loading books. Please try again later.</p>'
         })
 }
+
+function toggleEditForm(id, title, price) {
+    var formDiv = document.getElementById(`edit-form-${id}`)
+
+    if (formDiv.innerHTML === '' || formDiv.style.display === 'none') {
+        formDiv.style.display = 'block'
+        formDiv.innerHTML = `
+            <form onsubmit="submitEdit(event, '${id}')">
+                <label>Title: <input name="title" value="${title}" /></label><br>
+                <label>Price: <input name="price" type="number" value="${price}"/></label><br>
+                <button type="submit">Save</button>
+            </form>
+        `
+    } else {
+        formDiv.style.display = 'none'
+    }
+}
+
+function submitEdit(event, id) {
+    event.preventDefault()
+    var form = event.target
+    var updatedBook = {
+        title: form.title.value,
+        price: parseFloat(form.price.value)
+    }
+
+    fetch(`/books/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedBook)
+    })
+    .then(function(res){
+        return res.json()
+    })
+    .then(function(){
+        fetchBooks()
+    })
+    .catch(function(err) {
+        console.error('Error updating book:', err)
+    })
+}
+
 
 

@@ -205,6 +205,35 @@ app.post('/add-book', function(req, res) {
     })
 })
 
+app.post('/edit-book', function(req, res) {
+    var { id, title, author, price, description, stock } = req.body
+    var updatedBook = {
+        title,
+        author,
+        price: parseFloat(price),
+        description,
+        stock: parseInt(stock)
+    }
+
+    client.connect()
+        .then(() => {
+            var db = client.db('CSCDatabase')
+            var coll = db.collection('books')
+            return coll.updateOne({ _id: new ObjectId(id) }, { $set: updatedBook })
+        })
+        .then(result => {
+            console.log(`Book with ID ${id} updated.`)
+            res.redirect('/admin.html')
+        })
+        .catch(err => {
+            console.error('Error updating book:', err)
+        })
+        .finally(() => {
+            client.close()
+        })
+})
+
+
 
 app.get('/logout', function(req, res) {
     res.redirect('/')
