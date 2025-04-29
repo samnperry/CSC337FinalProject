@@ -10,19 +10,39 @@ var usersCollection;
 var booksCollection;
 var ordersCollection;
 
-async function mongodbConnect() {
-    try {
-        await client.connect()
-        console.log('Connected to MongoDB...')
-        const db = client.db('CSCDatabase')
-        usersCollection = db.collection('users')
-        booksCollection = db.collection('books')
-        ordersCollection = db.collection('orders')
-    } catch (err) {
-        console.error('MongoDB connection error:', err)
-    }
+function insertPromise(collectionName, doc) {
+    return client.connect()
+        .then(function () {
+            var db = client.db('CSCDatabase')
+            var coll = db.collection(collectionName)
+            return coll.insertOne(doc)
+        })
+        .finally(function () {
+            client.close()
+        })
 }
-mongodbConnect()
+
+function findPromise(collectionName, search) {
+    return new Promise(function (resolve, reject) {
+        client.connect()
+            .then(function () {
+                var db = client.db('CSCDatabase')
+                var coll = db.collection(collectionName)
+                return coll.find(search).toArray()
+            })
+            .then(function (docs) {
+                resolve(docs)
+            })
+            .catch(function (err) {
+                console.log(err)
+                reject(err)
+            })
+            .finally(function () {
+                client.close()
+            })
+    })
+}
+
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -78,9 +98,10 @@ app.get('/admin.html', function(req, res) {
 app.post('/login', async function(req, res) {
     var { username, password } = req.body
     console.log(`Login attempt by: ${username}`)
-    try {
-        var user = await checkLogin(username, password)
-        if (user) {
+    findPromise('users', { username, password: hashPassword(password) })
+    .then(function (users) {
+        if (users.length > 0) {
+            var user = users[0]
             console.log(`Login successful for: ${username}`)
             if (isAdmin(user)) {
                 res.redirect('/admin.html')
@@ -91,60 +112,74 @@ app.post('/login', async function(req, res) {
             console.log(`Login failed for: ${username}`)
             res.redirect('/login.html')
         }
-    } catch (error) {
-        console.error('Error during login:', error)
-    }
+    })
+    .catch(function (err) {
+        console.error('Error during login:', err)
+        res.redirect('/login.html')
+    })
+
 })
 
 app.post('/register', async function(req, res) {
     var { username, email, password } = req.body
     console.log(`New user registration attempt: ${username} (${email})`)
 
-    try {
-        var existingUser = await usersCollection.findOne({ username })
-        if (existingUser) {
+    findPromise('users', { username })
+    .then(function (users) {
+        if (users.length > 0) {
             console.log('Username already exists.')
             res.redirect('/create_account.html')
         } else {
             var hashedPass = hashPassword(password)
-            await usersCollection.insertOne({
+            insertPromise('users', {
                 username,
                 email,
                 password: hashedPass,
                 usertype: 'user'
             })
-            console.log('User registered successfully.')
-            res.redirect('/login.html')
+            .then(function () {
+                console.log('User registered successfully.')
+                res.redirect('/login.html')
+            })
         }
-    } catch (error) {
-        console.error('Error during registration:', error)
-    }
+    })
+    .catch(function (err) {
+        console.error('Error during registration:', err)
+        res.redirect('/create_account.html')
+    })
+
 })
 
 app.post('/submit-order', async function(req, res) {
     var { book, quantity } = req.body
     console.log(`Order received: ${book} (Quantity: ${quantity})`)
 
-    try {
-        await ordersCollection.insertOne({
-            book,
-            quantity: parseInt(quantity),
-            orderDate: new Date()
-        })
+    insertPromise('orders', {
+        book,
+        quantity: parseInt(quantity),
+        orderDate: new Date()
+    })
+    .then(function () {
         console.log('Order saved to database.')
         res.redirect('/home.html')
-    } catch (error) {
+    })
+    .catch(function (error) {
         console.error('Error saving order:', error)
-    }
+        res.redirect('/order.html')
+    })
+    
 })
 
 app.get('/books', async function(req, res) {
-    try {
-        var books = await booksCollection.find().toArray()
+    findPromise('books', {})
+    .then(function (books) {
         res.json(books)
-    } catch (error) {
+    })
+    .catch(function (error) {
         console.error('Error fetching books:', error)
-    }
+        res.status(500).send('Error fetching books')
+    })
+
 })
 
 app.get('/logout', function(req, res) {
