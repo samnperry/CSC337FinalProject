@@ -62,6 +62,10 @@ app.get('/source.js', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'source.js'))
 })
 
+app.get('/styles.css', function(req, res) {
+    res.sendFile(path.join(__dirname, 'frontend', 'styles.css'))
+})
+
 app.get('/home.html', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'home.html'))
 })
