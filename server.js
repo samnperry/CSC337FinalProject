@@ -6,9 +6,6 @@ var { MongoClient } = require('mongodb')
 var app = express()
 
 var client = new MongoClient('mongodb+srv://samnperry:SH2BsUgpJC3984ro@csc337cluster.l97k3ff.mongodb.net/')
-var usersCollection;
-var booksCollection;
-var ordersCollection;
 
 function insertPromise(collectionName, doc) {
     return client.connect()
@@ -49,12 +46,6 @@ app.use(express.urlencoded({ extended: true }))
 
 function hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
-}
-
-async function checkLogin(username, password) {
-    var hashedPass = hashPassword(password)
-    var user = await usersCollection.findOne({ username: username, password: hashedPass })
-    return user
 }
 
 function isAdmin(user) {
