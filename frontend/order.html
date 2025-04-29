@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Bookstore - Home</title>
+    <title>Bookstore - Order Books</title>
     <link rel="stylesheet" href="style.css">
     <script src="source.js"></script>
 </head>
@@ -12,14 +12,21 @@
             <a href="products.html">Books</a>
             <a href="order.html">Order</a>
             <a href="login.html">Login</a>
-            <a href="create_account.html">Create Account</a>
         </nav>
         <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
     </header>
 
     <div class="container">
-        <h1>Welcome to Our Online Bookstore</h1>
-        <p>Browse and purchase your favorite books anytime, anywhere!</p>
+        <h1>Place an Order</h1>
+        <form action="/submit-order" method="POST">
+            <label for="book">Book Title:</label><br>
+            <input type="text" id="book" name="book" required><br><br>
+
+            <label for="quantity">Quantity:</label><br>
+            <input type="number" id="quantity" name="quantity" min="1" required><br><br>
+
+            <input type="submit" value="Place Order">
+        </form>
     </div>
 
     <footer>

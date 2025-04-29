@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bookstore - Create Account</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="source.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="home.html">Home</a>
+            <a href="products.html">Books</a>
+            <a href="order.html">Order</a>
+            <a href="login.html">Login</a>
+            <a href="create_account.html">Create Account</a>
+
+        </nav>
+        <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+    </header>
+
+    <div class="container">
+        <h1>Create an Account</h1>
+        <form action="/register" method="POST">
+            <label for="username">Username:</label><br>
+            <input type="text" id="username" name="username" required><br><br>
+
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" required><br><br>
+
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password" required><br><br>
+
+            <input type="submit" value="Register">
+        </form>
+        <p>Already have an account? <a href="login.html">Login here</a>.</p>
+    </div>
+
+    <footer>
+        &copy; 2025 Samantha, Amber, Miguel
+    </footer>
+</body>
+</html>
