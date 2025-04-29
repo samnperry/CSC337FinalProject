@@ -1,27 +1,7 @@
-function login(event) {
-    event.preventDefault()
-
+function storeUser(){
     var username = document.getElementById('username').value
-    var password = document.getElementById('password').value
-
-    fetch('/login', {
-        headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
-        body: JSON.stringify({ username, password })
-    })
-    .then(function(res) {
-        return res.text()
-    })
-    .then(function(text) {
-        document.open()
-        document.write(text)
-        document.close()
-    })
-    .catch(function(err) {
-        console.log(err)
-    })
+    window.localStorage.setItem('username', username)
 }
-
 function createUser(event) {
     event.preventDefault()
 
@@ -43,6 +23,29 @@ function createUser(event) {
         document.close()
     })
     .catch(function(err) {
+        console.log(err)
+    })
+}
+function sendReq(url){
+    var username = window.localStorage.getItem('username')
+    var body = {}
+    if(username!=null){
+        body = {'username':username}
+    }
+    fetch(url, {
+        'headers': {'Content-Type': 'application/json'},
+        'method': 'POST',
+        'body': JSON.stringify(body)
+    })
+    .then(function(res){
+        return res.text()
+    })
+    .then(function(text){
+        document.open()
+        document.write(text)
+        document.close()
+    })
+    .catch(function(err){
         console.log(err)
     })
 }

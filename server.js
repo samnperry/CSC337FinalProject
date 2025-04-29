@@ -49,7 +49,7 @@ function hashPassword(password) {
 }
 
 function isAdmin(user) {
-    return user && user.usertype === 'admin'
+    return user && user.usertype == 'admin'
 }
 
 app.use(express.static(path.join(__dirname, 'frontend')))
@@ -58,45 +58,54 @@ app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'home.html'))
 })
 
-app.get('/source.js', function(req, res) {
+app.get('/source', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'source.js'))
 })
 
-app.get('/styles.css', function(req, res) {
+app.get('/styles', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'styles.css'))
 })
 
-app.get('/home.html', function(req, res) {
+app.get('/home', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'home.html'))
 })
 
-app.get('/products.html', function(req, res) {
+app.get('/products', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'products.html'))
 })
 
-app.get('/order.html', function(req, res) {
+app.get('/order', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'order.html'))
 })
 
-app.get('/login.html', function(req, res) {
+app.get('/login', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'login.html'))
 })
 
-app.get('/create_account.html', function(req, res) {
+app.get('/create_account', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'create_account.html'))
 })
 
-app.get('/admin.html', function(req, res) {
+app.get('/admin', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'admin.html'))
 })
 
-app.post('/login', async function(req, res) {
-    var { username, password } = req.body
+app.get('/add_book', function(req, res) {
+    res.sendFile(path.join(__dirname, 'frontend', 'add_book.html'))
+})
+
+app.post('/lgn_action', async function(req, res) {
+    var { username, password } = req.body;
     console.log(`Login attempt by: ${username}`)
-    findPromise('users', { username, password: hashPassword(password) })
-    .then(function (users) {
+
+    try {
+        var users = await findPromise('users', {
+            username,
+            password: hashPassword(password)
+        })
+
         if (users.length > 0) {
-            var user = users[0]
+            const user = users[0]
             console.log(`Login successful for: ${username}`)
             if (isAdmin(user)) {
                 res.redirect('/admin.html')
@@ -107,13 +116,12 @@ app.post('/login', async function(req, res) {
             console.log(`Login failed for: ${username}`)
             res.redirect('/login.html')
         }
-    })
-    .catch(function (err) {
+    } catch (err) {
         console.error('Error during login:', err)
         res.redirect('/login.html')
-    })
+    }
+});
 
-})
 
 app.post('/register', async function(req, res) {
     var { username, email, password } = req.body
@@ -176,6 +184,27 @@ app.get('/books', async function(req, res) {
     })
 
 })
+
+app.post('/add-book', function(req, res) {
+    var { title, author, price, description, stock } = req.body
+    console.log(`Adding new book: ${title} by ${author}`)
+
+    insertPromise('books', {
+        title,
+        author,
+        price: parseFloat(price),
+        description,
+        stock: parseInt(stock)
+    })
+    .then(function () {
+        console.log('Book added successfully.')
+        res.redirect('/admin.html')
+    })
+    .catch(function (error) {
+        console.error('Error adding book:', error)
+    })
+})
+
 
 app.get('/logout', function(req, res) {
     res.redirect('/')

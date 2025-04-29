@@ -8,25 +8,25 @@
 <body>
     <header>
         <nav>
-            <a href="home.html">Home</a>
-            <a href="products.html">Books</a>
-            <a href="order.html">Order</a>
-            <a href="login.html">Login</a>
-            <a href="create_account.html">Create Account</a>
+            <a onclick="sendReq('/home')">Home</a>
+            <a onclick="sendReq('/products')">Books</a>
+            <a onclick="sendReq('/order')">Order</a>
+            <a onclick="sendReq('/login')">Login</a>
+            <a onclick="sendReq('/create_account')">Create Account</a>
         </nav>
         <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
     </header>
 
     <div class="container">
         <h1>Login</h1>
-        <form action="/login" method="POST">
+        <form action="/lgn_action" method="POST">
             <label for="username">Username:</label><br>
             <input type="text" id="username" name="username" required><br><br>
 
             <label for="password">Password:</label><br>
             <input type="password" id="password" name="password" required><br><br>
 
-            <input type="submit" value="Login">
+            <input type="submit" onclick="storeUser()" value="Login"> 
         </form>
         <p>Don't have an account? <a href="create_account.html">Register here</a>.</p>
     </div>
