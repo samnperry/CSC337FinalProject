@@ -54,43 +54,47 @@ function isAdmin(user) {
 
 app.use(express.static(path.join(__dirname, 'frontend')))
 
-app.get('/', function(req, res) {
-    res.sendFile(path.join(__dirname, 'frontend', 'home.html'))
-})
-
-app.get('/source', function(req, res) {
-    res.sendFile(path.join(__dirname, 'frontend', 'source.js'))
-})
-
-app.get('/styles', function(req, res) {
-    res.sendFile(path.join(__dirname, 'frontend', 'styles.css'))
-})
-
 app.get('/home', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'home.html'))
 })
 
-app.get('/products', function(req, res) {
-    res.sendFile(path.join(__dirname, 'frontend', 'products.html'))
+app.post('/', function(req, res) {
+    res.sendFile(path.join(__dirname, 'frontend', 'home.html'))
 })
 
-app.get('/order', function(req, res) {
+app.post('/source', function(req, res) {
+    res.sendFile(path.join(__dirname, 'frontend', 'source.js'))
+})
+
+app.get('/style.css', function(req, res) {
+    res.sendFile(path.join(__dirname, 'frontend', 'styles.css'))
+})
+
+app.post('/home', function(req, res) {
+    res.sendFile(path.join(__dirname, 'frontend', 'home.html'))
+})
+
+app.post('/products', function(req, res) {
+    res.sendFile(path.join(__dirname, 'frontend', 'product.html'))
+})
+
+app.post('/order', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'order.html'))
 })
 
-app.get('/login', function(req, res) {
+app.post('/login', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'login.html'))
 })
 
-app.get('/create_account', function(req, res) {
+app.post('/create_account', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'create_account.html'))
 })
 
-app.get('/admin', function(req, res) {
+app.post('/admin', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'admin.html'))
 })
 
-app.get('/add_book', function(req, res) {
+app.post('/add_book', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'add_book.html'))
 })
 
