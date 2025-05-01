@@ -4,15 +4,9 @@
     <title>Add New Book</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body onload="updateNavbar()">
     <header>
-        <nav>
-            <a onclick="sendReq('/home')">Home</a>
-            <a onclick="sendReq('/products')">Books</a>
-            <a onclick="sendReq('/order')">Order</a>
-            <a onclick="sendReq('/login')">Login</a>
-            <a onclick="sendReq('/admin')">Admin</a>
-        </nav>
+        <nav id="navbar"></nav>
     </header>
 
     <div class="container">

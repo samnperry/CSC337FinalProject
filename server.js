@@ -8,36 +8,29 @@ var app = express()
 var client = new MongoClient('mongodb+srv://samnperry:SH2BsUgpJC3984ro@csc337cluster.l97k3ff.mongodb.net/')
 
 function insertPromise(collectionName, doc) {
-    return client.connect()
+    var localClient = new MongoClient('mongodb+srv://samnperry:SH2BsUgpJC3984ro@csc337cluster.l97k3ff.mongodb.net/')
+    return localClient.connect()
         .then(function () {
-            var db = client.db('CSCDatabase')
+            var db = localClient.db('CSCDatabase')
             var coll = db.collection(collectionName)
             return coll.insertOne(doc)
         })
         .finally(function () {
-            client.close()
+            localClient.close()
         })
 }
 
 function findPromise(collectionName, search) {
-    return new Promise(function (resolve, reject) {
-        client.connect()
-            .then(function () {
-                var db = client.db('CSCDatabase')
-                var coll = db.collection(collectionName)
-                return coll.find(search).toArray()
-            })
-            .then(function (docs) {
-                resolve(docs)
-            })
-            .catch(function (err) {
-                console.log(err)
-                reject(err)
-            })
-            .finally(function () {
-                client.close()
-            })
-    })
+    var localClient = new MongoClient('mongodb+srv://samnperry:SH2BsUgpJC3984ro@csc337cluster.l97k3ff.mongodb.net/')
+    return localClient.connect()
+        .then(function () {
+            var db = localClient.db('CSCDatabase')
+            var coll = db.collection(collectionName)
+            return coll.find(search).toArray()
+        })
+        .finally(function () {
+            localClient.close()
+        })
 }
 
 
@@ -124,12 +117,30 @@ app.post('/lgn_action', async function(req, res) {
         console.error('Error during login:', err)
         res.redirect('/login.html')
     }
-});
+})
 
+app.post('/check-user-role', async function(req, res) {
+    var { username } = req.body
+    console.log('Checking user role for:', username)
+    
+    try {
+        var users = await findPromise('users', { username })
+        console.log('Users found:', users)
+        
+        if (users.length > 0) {
+            res.json({ usertype: users[0].usertype })
+        } else {
+            console.log('User not found')
+            res.json({ usertype: 'user' })
+        }
+    } catch (err) {
+        console.error('Error fetching user:', err)
+    }
+})
 
 app.post('/register', async function(req, res) {
-    var { username, email, password } = req.body
-    console.log(`New user registration attempt: ${username} (${email})`)
+    var { username, email, password, usertype } = req.body
+    console.log(`New user registration: ${username} (${email}), Type: ${usertype}`)
 
     findPromise('users', { username })
     .then(function (users) {
@@ -138,11 +149,14 @@ app.post('/register', async function(req, res) {
             res.redirect('/create_account.html')
         } else {
             var hashedPass = hashPassword(password)
+            if (!usertype){
+                usertype == 'user'
+            }
             insertPromise('users', {
                 username,
                 email,
                 password: hashedPass,
-                usertype: 'user'
+                usertype: usertype
             })
             .then(function () {
                 console.log('User registered successfully.')
@@ -154,27 +168,50 @@ app.post('/register', async function(req, res) {
         console.error('Error during registration:', err)
         res.redirect('/create_account.html')
     })
-
 })
 
 app.post('/submit-order', async function(req, res) {
     var { book, quantity } = req.body
     console.log(`Order received: ${book} (Quantity: ${quantity})`)
 
-    insertPromise('orders', {
-        book,
-        quantity: parseInt(quantity),
-        orderDate: new Date()
-    })
-    .then(function () {
-        console.log('Order saved to database.')
+    try {
+        var books = await findPromise('books', { title: book })
+        if (books.length === 0) {
+            console.log('Book not found.')
+            res.redirect('/order.html')
+            return
+        }
+
+        var bookToUpdate = books[0]
+
+        if (bookToUpdate.stock < quantity) {
+            console.log('Not enough stock available.')
+            res.redirect('/order.html')
+            return
+        }
+
+        var updatedStock = bookToUpdate.stock - quantity
+
+        await insertPromise('orders', {
+            book,
+            quantity: parseInt(quantity),
+            orderDate: new Date()
+        })
+
+        var localClient = new MongoClient('mongodb+srv://samnperry:SH2BsUgpJC3984ro@csc337cluster.l97k3ff.mongodb.net/')
+        await localClient.connect()
+        const db = localClient.db('CSCDatabase')
+        await db.collection('books').updateOne(
+            { _id: bookToUpdate._id },
+            { $set: { stock: updatedStock } }
+        )
+
+        console.log('Order saved to database and stock updated.')
         res.redirect('/home.html')
-    })
-    .catch(function (error) {
-        console.error('Error saving order:', error)
+    } catch (error) {
+        console.error('Error processing order:', error)
         res.redirect('/order.html')
-    })
-    
+    }
 })
 
 app.get('/books', async function(req, res) {
@@ -210,8 +247,8 @@ app.post('/add-book', function(req, res) {
 })
 
 app.post('/edit-book', function(req, res) {
-    var { id, title, author, price, description, stock } = req.body
-    var updatedBook = {
+    const { id, title, author, price, description, stock } = req.body
+    const updatedBook = {
         title,
         author,
         price: parseFloat(price),
@@ -219,21 +256,23 @@ app.post('/edit-book', function(req, res) {
         stock: parseInt(stock)
     }
 
-    client.connect()
-        .then(() => {
-            var db = client.db('CSCDatabase')
-            var coll = db.collection('books')
-            return coll.updateOne({ _id: new ObjectId(id) }, { $set: updatedBook })
+    var localClient = new MongoClient('mongodb+srv://samnperry:SH2BsUgpJC3984ro@csc337cluster.l97k3ff.mongodb.net/')
+    localClient.connect()
+        .then(function () {
+            const db = localClient.db('CSCDatabase');
+            return db.collection('books')
+                     .updateOne({ _id: new ObjectId(id) }, { $set: updatedBook })
         })
-        .then(result => {
+        .then(function () {
             console.log(`Book with ID ${id} updated.`)
+            res.json({ message: `Book with ID ${id} updated.` })
+        })
+        .catch(function (err) {
+            console.error('Error updating book:', err)
             res.redirect('/admin.html')
         })
-        .catch(err => {
-            console.error('Error updating book:', err)
-        })
-        .finally(() => {
-            client.close()
+        .finally(function () {
+            localClient.close()
         })
 })
 
