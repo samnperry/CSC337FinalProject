@@ -51,7 +51,7 @@ app.get('/home', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'home.html'))
 })
 
-app.post('/', function(req, res) {
+app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname, 'frontend', 'home.html'))
 })
 
@@ -283,5 +283,5 @@ app.get('/logout', function(req, res) {
 })
 
 app.listen(8080, function() {
-    console.log('Server started on http://localhost:8080');
+    console.log('Server started on http://localhost:8080/home');
 })
