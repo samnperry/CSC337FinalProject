@@ -13,11 +13,15 @@ This project is a full-stack online bookstore web application built using Node.j
 Install all node modules needed to system.
 
 ```bash
-npm install
+npm install express
+npm install crypto
+npm install path
+npm install mongodb
 ```
 
 ### 2. Set up MongoDB
-- Create a MongoDB Atlas cluster OR run a local MongoDB instance.
+- Create a MongoDB cluster OR run a local MongoDB instance.
+- This project uses a cluster hosted on MongoDB that does not need to be copied locally.
 - Create a database called CSCDatabase with the following collections:
     - users
     - books
@@ -33,4 +37,4 @@ var client = new MongoClient('your-mongodb-connection-string-here')
 node server.js
 ```
 The server will start on:
-http://localhost:8080
+http://localhost:8080/home
